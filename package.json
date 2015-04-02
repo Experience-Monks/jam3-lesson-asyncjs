@@ -1,0 +1,35 @@
+{
+  "name": "jam3-lesson-assyncjs",
+  "version": "1.0.0",
+  "description": "This is a lesson on assynchronous javascript. It covers Node EventEmitter, Node Style Callbacks, and Promises",
+  "main": "index.js",
+  "bin": {
+    "jam3-lesson-assyncjs": "index.js"
+  },
+  "preferGlobal": true,
+  "license": "MIT",
+  "author": {
+    "name": "Mikko Haapoja",
+    "email": "me@mikkoh.com",
+    "url": "https://github.com/mikkoh"
+  },
+  "dependencies": {
+    "browser-lessons": "^1.3.0",
+    "tape": "^3.5.0"
+  },
+  "devDependencies": {},
+  "scripts": {
+    "test": "node test.js"
+  },
+  "keywords": [
+    "browser,lessons,jam3,assynchronous,assync,promises,callbacks,events"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/Jam3/jam3-lesson-assyncjs.git"
+  },
+  "homepage": "https://github.com/Jam3/jam3-lesson-assyncjs",
+  "bugs": {
+    "url": "https://github.com/Jam3/jam3-lesson-assyncjs/issues"
+  }
+}
