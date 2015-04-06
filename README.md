@@ -1,4 +1,4 @@
-# jam3-lesson-assyncjs
+# jam3-lesson-asyncjs
 
 [![experimental](http://badges.github.io/stability-badges/dist/experimental.svg)](http://github.com/badges/stability-badges)
 
@@ -14,8 +14,8 @@ It covers the following topics:
 
 ## Usage
 
-[![NPM](https://nodei.co/npm/jam3-lesson-assyncjs.png)](https://www.npmjs.com/package/jam3-lesson-assyncjs)
+[![NPM](https://nodei.co/npm/jam3-lesson-asyncjs.png)](https://www.npmjs.com/package/jam3-lesson-asyncjs)
 
 ## License
 
-MIT, see [LICENSE.md](http://github.com/Jam3/jam3-lesson-assyncjs/blob/master/LICENSE.md) for details.
+MIT, see [LICENSE.md](http://github.com/Jam3/jam3-lesson-asyncjs/blob/master/LICENSE.md) for details.
