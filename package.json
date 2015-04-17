@@ -14,6 +14,7 @@
     "url": "https://github.com/mikkoh"
   },
   "dependencies": {
+    "bluebird": "^2.9.24",
     "browser-lessons": "^1.3.0",
     "tape": "^3.5.0"
   },
