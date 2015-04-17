@@ -12,5 +12,25 @@ module.exports = function(imageURL1, imageURL2, callback) {
   // If the image does not load properly you should return an error
   // the node style callback passed to this function. The message of 
   // the error should be the url which failed
-  
+  var image1 = new Image();
+  var image2 = new Image();
+
+  image1.onload = function() {
+    callback(null, image1);
+  };
+
+  image1.onerror = function() {
+    callback(new Error(image1.src));
+  };
+
+  image2.onload = function() {
+    callback(null, image2);
+  };
+
+  image2.onerror = function() {
+    callback(new Error(image2.src));
+  };  
+
+  image1.src = imageURL1;
+  image2.src = imageURL2;
 };
