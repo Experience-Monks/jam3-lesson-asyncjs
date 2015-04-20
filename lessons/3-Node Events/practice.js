@@ -58,7 +58,11 @@ function checkInfo(t, eventName, info) {
   // url
   // percent
   
-  t.ok(info.image instanceof HTMLImageElement, '"' + eventName + '" event info image is an HTMLImageElement');
-  t.ok(typeof info.url === 'string', '"' + eventName + '" event info url is a String');
-  t.ok(typeof info.percent === 'number', '"' + eventName + '" event info url is a Number');
+  if(info) {
+    t.ok(info.image instanceof HTMLImageElement, '"' + eventName + '" event info image is an HTMLImageElement');
+    t.ok(typeof info.url === 'string', '"' + eventName + '" event info url is a String');
+    t.ok(typeof info.percent === 'number', '"' + eventName + '" event info url is a Number');  
+  } else {
+    t.fail(eventName + 'did not return an info object');
+  }
 }
