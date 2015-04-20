@@ -1,7 +1,6 @@
 var usersExport = require('usersExport');
 var test = require('tape');
 var browserLessons = require('browser-lessons/test-out');
-var EventEmitter = require('events').EventEmitter;
 
 test('3-Node Events', function(t) {
 

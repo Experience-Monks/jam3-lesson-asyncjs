@@ -17,10 +17,36 @@ var promise = require('bluebird');
 module.exports = {
 
   load: function(url) {
-    // return a promise here
+
+    return new promise( function(resolve, reject) {
+
+      var image = new Image();
+
+      image.onload = function() {
+
+        resolve(image);
+      };
+
+      image.onerror = function() {
+
+        reject(url);
+      };
+
+      image.src = url;
+    });
   },
 
   loadMany: function(urls) {
-    // return a promise here
+
+    var load = this.load;
+
+    return promise.map(urls, function(url) {
+
+      return load(url)
+      .catch(function() {
+
+        return null;
+      });
+    });
   }
 };
