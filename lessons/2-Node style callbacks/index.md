@@ -2,10 +2,9 @@
 
 The second time you'll experience asynchronous code or the first time you'll be writing your own asynchronous code you'll probably experience a "callback".
 
-Callbacks are functions you pass in as parameters to a function which will be called at a later time.
+Callbacks are functions you pass in as parameters to a function which will be called at a later time. In the previous lesson we learned about `onclick` this is actually a callback handler.
 
 Using callbacks can look something like this:
-
 ```javascript
 function loadImage(url, callback) {
   var image = new Image();
@@ -24,7 +23,7 @@ In the above example when the `loadImage` function is called it will attempt to 
 
 This concept is something which you'll encounter over and over again in Javascript development. 
 
-To showcase the power of callbacks lets say we wanted to load images and push them to an Array once they're finished we could simply do this:
+To showcase the power of callbacks lets say we wanted to load images and push them to an Array once they're finished we could do this:
 ```javascript
 var imageArray = [];
 
@@ -40,7 +39,7 @@ In the above example what would happen is that `imageArray` would look like this
 ]
 ```
 
-One of the issues with callbacks is that you never know what it's going to return. For instance in our example we returned `null` but what if someone created a JSON loader that instead returned `undefined` when the load has failed. It would be annoying for the developer to handle both cases.
+One of the issues with callbacks is that you never know what it's going to return. For instance in our example we returned `null` but what if someone created a JSON loader that instead returned `false` or `undefined` or `0` when the load has failed. It would be annoying for the developer to handle all cases all the time.
 
 ## Node Convention: Error First Callbacks
 
@@ -61,9 +60,41 @@ function loadImage(url, callback) {
 }
 ```
 
-So basically an `Error` object is returned if there's an issue while loading the image and `null` followed by the `HTMLImageElement` if loading succeeded. 
+So basically an `Error` object is returned if there's an issue while loading the image. If there were no issues then `null` followed by the `HTMLImageElement` is returned via the callback. 
 
 Switching to node style callbacks has some advantages. For instance you can leverage and work with many modules from npm easier and developers you're working with will always know how your callbacks are implemented.
+
+Typically when using Node Style callbacks your code would look like this:
+```javascript
+loadImage('someImage.jpg', function(err, image) {
+  if(err) {
+    throw err;
+  }
+
+  document.body.appendChild(image);
+});
+```
+When using node style callbacks you should always check if an error was returned and hanlde it somehow. In this case we're throwing the `Error` which was returned. If you decide not to throw an `Error` but instead handle it another way ensure that you call `return`. For instance let's say if the image failed to load and we loaded a 404 images instead it would look like this:
+```javascript
+loadImage('someImage.jpg', function(err, image) {
+  if(err) {
+    loadImage('404.jpg', function(err, image) {
+      if(err) {
+        throw err;
+      }
+
+      document.body.appendChild(image);
+    });
+
+    return;
+  }
+
+  document.body.appendChild(image);
+});
+```
+
+So it's a bit of a gotcha but if you didn't have the `return` statement what would happen is would start loading `'404.jpg'` and then try to add the broken image anyway. Speaking of gotchas.
+
 
 ## Gotchas
 
@@ -123,12 +154,12 @@ The above is obviously a lot more readable than the christmas tree.
 
 #### Method 2: Use the Async Module
 
-The Async Module lives here and has many nice methods for dealing with asynchronous code. The above example could be changed to this:
+The Async Module [lives](https://www.npmjs.com/package/async) here and has many nice methods for dealing with asynchronous code. The above example could be changed to this:
 
 ```javascript
 var async = require('async');
 
-async.map(['image1.jpg', 'image2.jpg', 'image3.jpg', 'image4.jpg'], loadImage, function(err, images) {
+async.map(['image1.jpg', 'image2.jpg', 'image3.jpg', 'image4.jpg'], loadImage, function(err, intoArray) {
 
 });
 
@@ -144,7 +175,7 @@ function loadImage(callback) {
 
 ### Method 3: Promises
 
-Promises will be discussed later on again. But here's how you would implement the example with promises:
+Promises will be discussed later on again. But here's how you would implement the example with promises with the simplest way possible. A better way will be discussed later:
 ```javascript
 var promise = require('bluebird');
 
@@ -204,7 +235,7 @@ function loadImages() {
 
 ### Returning A Lot
 
-In the above section we showed a few solutions to fix the christmas tree. In one of those solutions we used the `async` module. In that example everything worked because we were returning one image in the callback after the `Error`. But if you had to return multiple items that example would break. Many modules have been writen that expect one data object to be returned and if you break this convention you can't use those modules.
+In the above section we showed a few solutions to fix the christmas tree. In one of those solutions we used the `async` module. In that example everything worked because we were returning one image in the callback after the `Error` our `null`. But if you had to return multiple parameters that example would break. Many modules have been writen that expect one data object to be returned and if you break this convention you can't use those modules.
 
 Let's look at how it would look when you're breaking this convention:
 ```javascript
@@ -214,7 +245,7 @@ function loadTwoImages(callback) {
 }
 ```
 
-If our callback was structured this way it's breaking general convention for Node Callbacks. Although even some of Node's core resources break this but still you should fix the above to look something like this:
+If our callback was structured this way it's breaking general convention for Node Callbacks. This is more of a general convention and not something written in stone as some of Node's core modules break this convention but still you should fix the above to look something like this:
 ```javascript
 function loadTwoImages(callback) {
   // load two images
@@ -228,19 +259,19 @@ function loadTwoImages(callback) {
 
 ### Sometimes Asynchronous Callbacks
 
-This is a big gotcha that might take a long time to debug. You're callbacks should ALWAYS be assynchronous. Let's take a slightly obscure example to show this issue:
+This is a big gotcha that might take a long time to debug. You're callbacks should ALWAYS be asynchronous. Let's take a slightly obscure example to show this issue:
 ```javascript
 var a = 0;
 
-setAToBe1( function() {
+laterSetAToBe1( function() {
   console.log('YAY a is 1');
 });
 
 if( a === 1) {
-  throw new Error('a should never be 1 only after callback');
+  throw new Error('a should never be 1 only after callback should it be 1');
 }
 
-function setAToBe1(callback) {
+function laterSetAToBe1(callback) {
   if(Math.random() > 0.5) {
     a = 1;
     callback(null);
@@ -252,7 +283,9 @@ function setAToBe1(callback) {
 }
 ```
 
-The above example is very obscure but it's there to prove the point. Callbacks should always be deferred or called later. In this case theres a 50% chance that an Error would be thrown might be thrown. Since developers expect callbacks to be always processed at a later time you might write code inadvertedly which may cause bugs. 
+The above example is very obscure but it's there to prove the point. Callbacks should always be deferred or called later. In this case theres a 50% chance that an Error would be thrown. Since developers expect callbacks to be always processed at a later time you might write code inadvertedly which may cause bugs. 
+
+In this example we wrote code as if we were expecting `a` to be `1` at a later time. But clearly that would happen only 50% of the time.
 
 To make your callbacks always be deffered you can use node's [`process.nextTick`](https://nodejs.org/api/process.html#process_process_nexttick_callback). [`process.nextTick`](https://nodejs.org/api/process.html#process_process_nexttick_callback) is implemented into Browserify so it also works on the frontend. It basically just ensures something will be run in the next frame of processing.
 
@@ -260,7 +293,7 @@ To fix our obscure example we'd do the following:
 ```javascript
 var a = 0;
 
-setAToBe1( function() {
+laterSetAToBe1( function() {
   console.log('YAY a is 1');
 });
 
@@ -268,7 +301,7 @@ if( a === 1) {
   throw new Error('a should never be 1 only after callback');
 }
 
-function setAToBe1(callback) {
+function laterSetAToBe1(callback) {
   if(Math.random() > 0.5) {
     a = 1;
     process.nextTick(callback.bind(undefined, null));
@@ -279,3 +312,5 @@ function setAToBe1(callback) {
   }
 }
 ```
+
+Now the callback will always be called at later time. Go ahead and start working on `2-Node style callbacks/practice/index.js`. There you'll work on loading images and calling a callback.

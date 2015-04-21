@@ -35,9 +35,9 @@ signalComplete.add( function(isCompleted) {
 
 As you can see events and signals are very similar.
 
-As you might remember from the last lesson part on Node Event's we created a prototypical "class" whose prototype was based on Node's EventEmitter. You would NEVER do this with Signals.
+You might remember from the last lesson part on Node Event's we created a prototypical "class" whose prototype was based on Node's EventEmitter. You would NEVER do this with Signals. Signals prefer composition over inheritance.
 
-The major difference between EventEmitter and Signal is that an EventEmitter will dispatch many events where one Signal is responsible for one Event.
+The major difference between EventEmitter and Signal is that an EventEmitter will dispatch many event types where one Signal is responsible for one event type.
 
 ## Signals over Events
 
@@ -50,7 +50,7 @@ var mouseThing = {
 };
 ```
 
-One nice thing is let's say the author of this Object decides to remove `signalMouseOver` anyone depending on that Signal will receive a runtime error when running the code.
+One nice thing is let's say the author of `mouseThing` decides to remove `signalMouseOver` anyone depending on that Signal will receive a runtime error when running the code saying signalMouseOver is undefined.
 
 So for instance if `mouseThing` looked like this:
 ```javascript
@@ -67,9 +67,7 @@ mouseThing.signalMouseOver.add( function() {
 });
 ```
 
-When this script runs you'd get a runtime error that `signalMouseOver` is undefined.
-
-Compare this to events if simple the EventEmitter stops emitting an event no one will never know in scope outside of where that EventEmitter was created.
+Compare this to events if an EventEmitter stops emitting an event type no one will never know in the scope outside of where that EventEmitter was created.
 
 So in theory Signals are superior than Event's when working in teams because if developer A deletes the signals developer B will quickly realize it was deleted.
 

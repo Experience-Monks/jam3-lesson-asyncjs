@@ -66,7 +66,7 @@ module.exports = function imageLoader(url) {
 };
 ```
 
-How you would actually use the above:
+How you would actually use the above example which uses promises:
 ```javascript
 var imageLoader = require('imageloader'); // not a real module but lets pretend
 
@@ -81,7 +81,7 @@ imageLoader(someURL)
 
 Basically with promises you always say. "Do something" and "then do this" unless "catch this".
 
-So you might be wondering if promises were created to get rid of callback hell how does it do it? Well let's try to load some more images:
+So you might be wondering how do Promises solve callback christmas trees? Well let's try to load some more images:
 
 ```javascript
 var imageLoader = require('imageloader'); // not a real module but lets pretend
@@ -107,7 +107,7 @@ imageLoader(someURL)
 });
 ```
 
-As you can see we don't get that christmas tree effect which was mentioned in the Node Style callbacks section.
+As you can see we don't get that christmas tree effect which was mentioned in the [Node Style callbacks section](../2-Node%20style%20callbacks/).
 
 In the above example you'll notice that we do:
 ```javascript
@@ -118,7 +118,7 @@ In the above example you'll notice that we do:
 })
 ```
 
-When a `.then` statement returns a promise which is what the `imageLoader` function does the next `.then` callback wont be fired until the returned promise resolves.
+When a `.then` statement returns a promise, which is what the `imageLoader` function does, the next `.then` callback wont be fired until the returned promise resolves.
 
 Later on we do:
 ```javascript
@@ -129,7 +129,7 @@ Later on we do:
 })
 ```
 
-In this case obviously a promise is not returned by then `.then` callback but rather just an image. Since it's not a promise the value is simply passed to the next `.then` statement where set the `left` css property. (there's really no reason to pass an image and set the style but it's here for example).
+In this case obviously a promise is not returned by then `.then` callback but rather just an image. Since it's not a promise the value is simply passed to the next `.then` statement where we set the `left` css property. (there's really no reason to pass an image and set the style but it's here for example).
 
 The `.catch` statement is interesting in that if any of the promises fail in the `.then` chain then the catch statement will be called and the `.then` chain will not proceed.
 
@@ -152,7 +152,7 @@ function calculateOnce() {
 
 So if you look at the above example. `Math.random` is only calculated once and after that the stored/memoized value is used. You might want to use this design pattern when a calculation is heavy.
 
-So if used the example from our image loader:
+So if we used the example image loader like this:
 ```javascript
 var imagePromise = imageLoader(someURL);
 
@@ -172,15 +172,15 @@ function doSomethingWithImage2(imagePromise) {
 }
 ```
 
-If you ran the above example you'd only have one image in `<body>` this because the same image would just be appended twice and the `DOM` does not allow for duplicated elements. If the promise performed a load each time a new `<img>` would be placed on the `DOM` each time. It should also be noted if the image load failed the promise would ALWAYS also fail.
+You'd only have one image in `<body>` this is because the same image would just be appended twice and the `DOM` does not allow for duplicated elements. If the promise performed a load each time a new `<img>` would be placed on the `DOM` twice. It should also be noted if the image load failed the promise would ALWAYS also fail.
 
 This memoization is something you could always write if using callbacks or events or even Signals but since you get it for free with promises it's a reason to choose promises over those other event systems.
 
 ## Promisifying
 
-One nice thing about promises is modules like [`bluebird`](https://www.npmjs.com/package/bluebird) implement the ability to create Node Style callbacks to promises.
+One nice thing about promises is modules like [`bluebird`](https://www.npmjs.com/package/bluebird) implement the ability to convert Node Style callbacks to promises.
 
-Take the following, taken from bluebird's document:
+Take the following from bluebird's document:
 ```javascript
 var readFile = Promise.promisify(require("fs").readFile);
 
@@ -196,11 +196,11 @@ readFile("myfile.js", "utf8").then(function(contents) {
 });
 ```
 
-It takes Node's built in `readFile` function which is an asyncrhonous function which expects a Node Style callback. Any method structured like this can be converted into a funtion which returns a promise.
+It takes Node's built in `readFile` function which is an asynchronous function which expects a Node Style callback and converts it to a function which will return a promise. Any method which expects a Node Style callbacks can be converted into a funtion which returns a promise.
 
 ## Chaining
 
-Let's say you wanted to donwload a bunch of images you might do something like this:
+Let's say you wanted to download a bunch of images you might do something like this:
 ```javascript
 imageLoader('someURL.jpg')
 .then( function(image) {
