@@ -16,6 +16,8 @@ function loadImage(url, callback) {
   image.onerror = function() {
     callback(null);
   };
+
+  image.src = url;
 }
 ```
 
@@ -57,10 +59,17 @@ function loadImage(url, callback) {
   image.onerror = function() {
     callback(new Error('Could not load image'));
   };
+
+  image.src = url;
 }
 ```
 
-So basically an `Error` object is returned if there's an issue while loading the image. If there were no issues then `null` followed by the `HTMLImageElement` is returned via the callback. 
+They have some specific characteristics:
+
+- Your async `loadImage` method should take a `callback` as its last parameter
+- If an error occurs, pass a new `Error` object to the first parametr (not a string!)
+- If the operation succeeds, the first parameter must be `null`, and the second parameter contains the resolved data
+- The `callback` is not called more than once
 
 Switching to node style callbacks has some advantages. For instance you can leverage and work with many modules from npm easier and developers you're working with will always know how your callbacks are implemented.
 
@@ -74,7 +83,7 @@ loadImage('someImage.jpg', function(err, image) {
   document.body.appendChild(image);
 });
 ```
-When using node style callbacks you should always check if an error was returned and hanlde it somehow. In this case we're throwing the `Error` which was returned. If you decide not to throw an `Error` but instead handle it another way ensure that you call `return`. For instance let's say if the image failed to load and we loaded a 404 images instead it would look like this:
+When using node style callbacks you should always check if an error was returned and handle it somehow. In this case we're throwing the `Error` which was returned. If you decide not to throw an `Error` but instead handle it another way ensure that you call `return`. For instance let's say if the image failed to load and we loaded a 404 images instead it would look like this:
 ```javascript
 loadImage('someImage.jpg', function(err, image) {
   if(err) {
@@ -154,83 +163,38 @@ The above is obviously a lot more readable than the christmas tree.
 
 #### Method 2: Use the Async Module
 
-The Async Module [lives](https://www.npmjs.com/package/async) here and has many nice methods for dealing with asynchronous code. The above example could be changed to this:
+The Async Module [lives here](https://www.npmjs.com/package/async) and has many nice methods for dealing with asynchronous code. Using our Node-style `loadImage` method, the above could be changed to this:
 
 ```javascript
 var async = require('async');
 
-async.map(['image1.jpg', 'image2.jpg', 'image3.jpg', 'image4.jpg'], loadImage, function(err, intoArray) {
-
-});
-
-function loadImage(callback) {
-  // do image loading
-  if(image) {
-    callback(null, image);  
-  } else {
-    callback(new Error('could not load image'));
+var paths = ['image1.jpg', 'image2.jpg', 'image3.jpg', 'image4.jpg'];
+async.map(paths, loadImage, function(err, images) {
+  if (err) {
+    console.error("Error loading an image", err);
+    return;
   }
-}
+
+  console.log("Loaded images:", images);
+});
 ```
 
 ### Method 3: Promises
 
-Promises will be discussed later on again. But here's how you would implement the example with promises with the simplest way possible. A better way will be discussed later:
+Promises will be discussed in more detail shortly. With Promises and our earlier Node-style `loadImage`, the code can look like this:
+
 ```javascript
-var promise = require('bluebird');
+var Promise = require('bluebird');
+var loadImageAsync = Promise.promisify(loadImage);
 
-loadImages()
-.then( function(images) {
-  // do something all loaded images
-});
+var paths = ['image1.jpg', 'image2.jpg', 'image3.jpg', 'image4.jpg'];
 
-function loadImages() {
-
-  var allImages = [];
-
-  return new promise( function(resolve, reject) {
-    // do image loading for image1.jpg
-    if(image) {
-      allImages.push(image);
-      resolve();
-    } else {
-      reject('Could not load image1');
-    }
+Promise.all(paths.map(loadImageAsync))
+  .then(function(images) {
+    console.log("Loaded images: ", images)
+  }, function(err) {
+    console.error("Error loading an image", err)
   })
-  .then( function() {
-    return new promise( function(resolve, reject) {
-      // do image loading for image2.jpg
-      if(image) {
-        allImages.push(image);
-        resolve();
-      } else {
-        reject('Could not load image2');
-      }
-    });
-  })
-  .then( function() {
-    return new promise( function(resolve, reject) {
-      // do image loading for image3.jpg
-      if(image) {
-        allImages.push(image);
-        resolve();
-      } else {
-        reject('Could not load image3');
-      }
-    });
-  })
-  .then( function() {
-    return new promise( function(resolve, reject) {
-      // do image loading for image4.jpg
-      if(image) {
-        allImages.push(image);
-        resolve(allImages);
-      } else {
-        reject('Could not load image4');
-      }
-    });
-  });
-}
 ```
 
 ### Returning A Lot
@@ -249,10 +213,7 @@ If our callback was structured this way it's breaking general convention for Nod
 ```javascript
 function loadTwoImages(callback) {
   // load two images
-  callback(null, {
-    image1: image1,
-    image2: image2
-  });
+  callback(null, [ image1, image2 ]);
 }
 ```
 
