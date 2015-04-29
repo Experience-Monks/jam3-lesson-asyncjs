@@ -191,10 +191,10 @@ var paths = ['image1.jpg', 'image2.jpg', 'image3.jpg', 'image4.jpg'];
 
 Promise.all(paths.map(loadImageAsync))
   .then(function(images) {
-    console.log("Loaded images: ", images)
+    console.log("Loaded images: ", images);
   }, function(err) {
-    console.error("Error loading an image", err)
-  })
+    console.error("Error loading an image", err);
+  });
 ```
 
 ### Returning A Lot
