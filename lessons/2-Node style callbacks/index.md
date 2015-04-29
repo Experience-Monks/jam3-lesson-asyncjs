@@ -288,7 +288,7 @@ The above example can *sometimes* be synchronous (i.e. callback triggered immedi
 var count;
 loadImage('image.png', function(err, image) {
   console.log('Count is', count);
-})
+});
 count = 0;
 ```
 
