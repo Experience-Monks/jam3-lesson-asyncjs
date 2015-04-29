@@ -259,58 +259,75 @@ function loadTwoImages(callback) {
 
 ### Sometimes Asynchronous Callbacks
 
-This is a big gotcha that might take a long time to debug. You're callbacks should ALWAYS be asynchronous. Let's take a slightly obscure example to show this issue:
+This is a gotcha that can lead to a lot of headaches in debugging. Methods that use callbacks should be consistent: *always* asynchronous, or *always* synchronous.
+
+Let's say we have this variation of our `loadImage` method that caches repeated loads:
+
 ```javascript
-var a = 0;
+var cache = {};
 
-laterSetAToBe1( function() {
-  console.log('YAY a is 1');
-});
+function loadImage(url, callback) {
+  if (url in cache) 
+    return callback(null, cache[url]);
 
-if( a === 1) {
-  throw new Error('a should never be 1 only after callback should it be 1');
-}
-
-function laterSetAToBe1(callback) {
-  if(Math.random() > 0.5) {
-    a = 1;
-    callback(null);
-  } else {
-    setTimeout(function() {
-      a = 1;
-    }, 100);
-  }
+  var image = new Image();
+  image.onload = function() {
+    cache[url] = image;
+    callback(null, image);
+  };
+  image.onerror = function() {
+    callback(new Error('could not find image '+url))
+  };
+  image.src = url;
 }
 ```
 
-The above example is very obscure but it's there to prove the point. Callbacks should always be deferred or called later. In this case theres a 50% chance that an Error would be thrown. Since developers expect callbacks to be always processed at a later time you might write code inadvertedly which may cause bugs. 
+The above example can *sometimes* be synchronous (i.e. callback triggered immediately). This causes problems with stateful code like this:
 
-In this example we wrote code as if we were expecting `a` to be `1` at a later time. But clearly that would happen only 50% of the time.
+```js
+var count;
+loadImage('image.png', function(err, image) {
+  console.log('Count is', count);
+})
+count = 0;
+```
 
-To make your callbacks always be deffered you can use node's [`process.nextTick`](https://nodejs.org/api/process.html#process_process_nexttick_callback). [`process.nextTick`](https://nodejs.org/api/process.html#process_process_nexttick_callback) is implemented into Browserify so it also works on the frontend. It basically just ensures something will be run in the next frame of processing.
+The first time this is run, `loadImage` is asynchronous, so it will print:
 
-To fix our obscure example we'd do the following:
+```
+Count is 0
+```
+
+However, the second time around, `loadImage` uses a cache and triggers the callback immediately; so it will print:
+
+```
+Count is undefined
+```
+
+To make the execution asynchronous you can use Node's [`process.nextTick`](https://nodejs.org/api/process.html#process_process_nexttick_callback). This is implemented into Browserify so it also works on the frontend. It basically just ensures something will be run in the next frame of processing.
+
+To fix our example we'd do the following:
+
 ```javascript
-var a = 0;
+var cache = {};
 
-laterSetAToBe1( function() {
-  console.log('YAY a is 1');
-});
-
-if( a === 1) {
-  throw new Error('a should never be 1 only after callback');
-}
-
-function laterSetAToBe1(callback) {
-  if(Math.random() > 0.5) {
-    a = 1;
-    process.nextTick(callback.bind(undefined, null));
-  } else {
-    setTimeout(function() {
-      a = 1;
-    }, 100);
+function loadImage(url, callback) {
+  if (url in cache) {
+    return process.nextTick(function() {
+      callback(null, cache[url]);
+    });
   }
+
+  var image = new Image();
+  image.onload = function() {
+    cache[url] = image;
+    callback(null, image);
+  };
+  image.onerror = function() {
+    callback(new Error('could not find image '+url))
+  };
+  image.src = url;
 }
 ```
 
-Now the callback will always be called at later time. Go ahead and start working on `2-Node style callbacks/practice/index.js`. There you'll work on loading images and calling a callback.
+Now our `loadImage` method is consistent and *always* asynchronous. Go ahead and start working on `2-Node style callbacks/practice/index.js`. There you'll work on loading images and calling a callback.
